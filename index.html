@@ -3,55 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI STUDIO PRO - Direct IP</title>
+    <title>AI STUDIO PRO - Full Features</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
-        .spinner { border: 4px solid #1e293b; border-top: 4px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: none; }
+        .loader { border: 4px solid #1e293b; border-top: 4px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
-    <div class="max-w-2xl mx-auto space-y-8">
+    <div class="max-w-3xl mx-auto space-y-8">
         <header class="text-center">
-            <h1 class="text-4xl font-black text-yellow-500 italic uppercase">AI Studio <span class="text-white">PRO</span></h1>
-            <p class="text-gray-500 text-[10px] tracking-[0.3em] font-bold uppercase mt-2">Server: 93.51.72.195</p>
+            <h1 class="text-4xl font-black text-yellow-500 italic uppercase tracking-tighter">AI Studio <span class="text-white">PRO</span></h1>
+            <p class="text-gray-500 text-[10px] tracking-[0.3em] font-bold uppercase mt-2">Server Attivo: 93.51.72.195</p>
         </header>
 
-        <div class="glass p-8 space-y-6">
-            <textarea id="prompt" class="w-full bg-black/40 border border-white/10 rounded-xl p-4 outline-none focus:border-yellow-500 transition-all" rows="3" placeholder="Scrivi la tua idea..."></textarea>
+        <div class="glass p-8 space-y-6 shadow-2xl">
+            <textarea id="prompt" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 transition-all text-lg" rows="3" placeholder="Descrivi la tua visione..."></textarea>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <select id="ratio" class="bg-slate-900 border border-white/10 rounded-lg p-4 text-sm outline-none">
-                    <option value="1:1">Quadrato 1:1</option>
-                    <option value="16:9">Orizzontale 16:9</option>
-                    <option value="9:16">Verticale 9:16</option>
-                </select>
-                <button onclick="genera()" class="bg-yellow-500 text-black font-black py-4 rounded-xl uppercase hover:bg-yellow-400 shadow-lg transition-all">
-                    Genera Immagine
-                </button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Formato</label>
+                    <select id="ratio" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
+                        <option value="1:1">Quadrato (1:1)</option>
+                        <option value="16:9">Orizzontale (16:9)</option>
+                        <option value="9:16">Verticale (9:16)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Seed (-1 = Random)</label>
+                    <input type="number" id="seed" value="-1" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="genera()" class="w-full bg-yellow-500 text-black font-black py-3 rounded-xl uppercase hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 active:scale-95 transition-all">
+                        Genera
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="glass min-h-[350px] flex flex-col items-center justify-center p-6 relative">
-            <div id="loader" class="spinner"></div>
-            <img id="output" class="hidden max-w-full rounded-xl shadow-2xl border border-white/10">
-            <div id="msg" class="text-white/10 text-6xl font-black italic uppercase select-none">Ready</div>
+        <div class="glass min-h-[400px] flex flex-col items-center justify-center p-6 relative">
+            <div id="loader" class="loader"></div>
+            <div id="result-box" class="hidden flex flex-col items-center gap-6">
+                <img id="output-img" class="max-w-full rounded-xl shadow-2xl border border-white/10">
+                <div class="flex gap-4">
+                    <button onclick="download()" class="text-[10px] font-bold uppercase border border-white/20 px-6 py-2 rounded-full hover:bg-white/10">Salva Immagine</button>
+                    <span id="used-seed" class="text-[10px] text-gray-500 self-center"></span>
+                </div>
+            </div>
+            <div id="placeholder" class="text-6xl font-black italic uppercase opacity-5 select-none tracking-tighter text-center">In attesa di prompt</div>
         </div>
     </div>
 
     <script>
-        // Endpoint puntato direttamente al tuo IP pubblico
+        // Endpoint diretto al tuo IP pubblico
         const API_URL = "http://93.51.72.195:8000"; 
 
         async function genera() {
             const p = document.getElementById('prompt').value;
-            if(!p) return alert("Inserisci un testo!");
+            if(!p) return alert("Inserisci una descrizione!");
 
             document.getElementById('loader').style.display = "block";
-            document.getElementById('output').classList.add('hidden');
-            document.getElementById('msg').classList.add('hidden');
+            document.getElementById('result-box').classList.add('hidden');
+            document.getElementById('placeholder').classList.add('hidden');
 
             try {
                 const r = await fetch(`${API_URL}/generate`, {
@@ -59,25 +74,33 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         prompt: p,
+                        seed: parseInt(document.getElementById('seed').value),
                         ratio: document.getElementById('ratio').value
                     })
                 });
                 
-                if (!r.ok) throw new Error("Server non raggiungibile");
+                if (!r.ok) throw new Error();
                 
                 const d = await r.json();
-                const hex = d.image;
-                const bytes = new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+                const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
                 const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                document.getElementById('output').src = url;
-                document.getElementById('output').classList.remove('hidden');
+                document.getElementById('output-img').src = url;
+                document.getElementById('used-seed').innerText = "Seed: " + d.seed;
+                document.getElementById('result-box').classList.remove('hidden');
             } catch(e) {
-                alert("Errore: Il NAS non risponde. Assicurati che:\n1. La porta 8000 sia aperta sul router.\n2. Lo script Python sia attivo sul NAS.");
-                document.getElementById('msg').classList.remove('hidden');
+                alert("Connessione fallita. Verifica il Port Forwarding sul router.");
+                document.getElementById('placeholder').classList.remove('hidden');
             } finally {
                 document.getElementById('loader').style.display = "none";
             }
+        }
+
+        function download() {
+            const a = document.createElement('a');
+            a.href = document.getElementById('output-img').src;
+            a.download = 'ai-art.png';
+            a.click();
         }
     </script>
 </body>
