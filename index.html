@@ -20,17 +20,34 @@
         .gallery-item:hover { border-color: #fbbf24; }
 
         /* Modal Pop-up */
-        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-content { max-width: 90%; max-height: 90%; position: relative; }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal-content { max-width: 90%; max-height: 90%; position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        /* Frecce Navigazione */
+        .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 24px; user-select: none; }
+        .nav-arrow:hover { background: #fbbf24; color: black; border-color: #fbbf24; }
+        .arrow-left { left: -80px; }
+        .arrow-right { right: -80px; }
+        
+        @media (max-width: 1024px) {
+            .nav-arrow { width: 45px; height: 45px; top: auto; bottom: -70px; transform: none; }
+            .arrow-left { left: 20%; }
+            .arrow-right { right: 20%; }
+        }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
 
     <div id="modal" onclick="closeModal()">
-        <div class="modal-content flex flex-col items-center gap-6" onclick="event.stopPropagation()">
-            <img id="modal-img" class="rounded-2xl shadow-2xl border border-white/10 max-h-[80vh] w-auto">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="relative">
+                <div class="nav-arrow arrow-left" onclick="prevImg()">&#10094;</div>
+                <img id="modal-img" class="rounded-2xl shadow-2xl border border-white/10 max-h-[75vh] w-auto">
+                <div class="nav-arrow arrow-right" onclick="nextImg()">&#10095;</div>
+            </div>
+
             <div class="flex gap-4">
-                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:scale-105 transition-all">Usa Prompt & Parametri</button>
+                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-lg">Ripristina Sessione</button>
                 <button onclick="closeModal()" class="bg-white/10 text-white px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest border border-white/10">Chiudi</button>
             </div>
         </div>
@@ -45,7 +62,7 @@
             </div>
             <div id="server-status" class="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full">
                 <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                <span class="text-[10px] font-bold uppercase text-red-500 tracking-widest">Server Offline</span>
+                <span class="text-[10px] font-bold uppercase text-red-500 tracking-widest text-red-500">Offline</span>
             </div>
         </header>
 
@@ -122,6 +139,7 @@
         let galleryData = []; 
         let fullHistory = []; 
         let lastSeed = -1;
+        let currentModalIdx = -1;
 
         async function checkServer() {
             try {
@@ -183,8 +201,9 @@
                 const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
                 const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                document.getElementById('out-img').src = url;
-                document.getElementById('out-img').classList.remove('hidden');
+                const outImg = document.getElementById('out-img');
+                outImg.src = url;
+                outImg.classList.remove('hidden');
                 document.getElementById('var-btn').classList.remove('hidden');
 
                 const historyItem = { ...currentParams, url: url, hex: d.image, seed: d.seed };
@@ -202,16 +221,18 @@
         function renderGallery() {
             const g = document.getElementById('gallery');
             g.innerHTML = '';
-            fullHistory.forEach((item) => {
+            fullHistory.forEach((item, index) => {
                 const img = document.createElement('img');
                 img.src = item.url;
                 img.className = "gallery-item shadow-xl";
-                img.onclick = () => openModal(item);
+                img.onclick = () => openModal(index);
                 g.appendChild(img);
             });
         }
 
-        function openModal(item) {
+        function openModal(index) {
+            currentModalIdx = index;
+            const item = fullHistory[index];
             const modal = document.getElementById('modal');
             const modalImg = document.getElementById('modal-img');
             const restoreBtn = document.getElementById('modal-restore-btn');
@@ -224,6 +245,23 @@
                 closeModal();
             };
         }
+
+        function nextImg() {
+            if(currentModalIdx > 0) openModal(currentModalIdx - 1);
+        }
+
+        function prevImg() {
+            if(currentModalIdx < fullHistory.length - 1) openModal(currentModalIdx + 1);
+        }
+
+        // Supporto tastiera (Esc, Frecce)
+        window.addEventListener('keydown', (e) => {
+            if(document.getElementById('modal').style.display === 'flex') {
+                if(e.key === "ArrowRight") nextImg();
+                if(e.key === "ArrowLeft") prevImg();
+                if(e.key === "Escape") closeModal();
+            }
+        });
 
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
@@ -258,7 +296,7 @@
             const d = await r.json();
             const a = document.createElement('a');
             a.href = "data:application/zip;base64," + d.zip;
-            a.download = "Lumina_Session.zip";
+            a.download = "Lumina_Export.zip";
             a.click();
         }
 
