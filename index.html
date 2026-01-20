@@ -19,16 +19,16 @@
         .gallery-item { flex: 0 0 auto; width: 140px; height: 90px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .gallery-item:hover { border-color: #fbbf24; }
 
-        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(12px); }
-        .modal-content { width: 95%; max-height: 95%; position: relative; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
+        .modal-content { width: 95%; height: 95%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
         
-        .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 20px; z-index: 110; }
+        .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 24px; z-index: 120; }
         .nav-arrow:hover { background: #fbbf24; color: black; border-color: #fbbf24; }
-        .arrow-left { left: 20px; }
-        .arrow-right { right: 20px; }
+        .arrow-left { left: 30px; }
+        .arrow-right { right: 30px; }
 
-        #out-img { cursor: zoom-in; transition: transform 0.3s ease; }
-        #out-img:hover { transform: scale(1.02); }
+        #out-img { max-width: 100%; max-height: 500px; object-fit: contain; cursor: zoom-in; border-radius: 1rem; }
+        #modal-img { max-width: 90vw; max-height: 75vh; object-fit: contain; }
     </style>
 </head>
 <body class="p-4 md:p-10 min-h-screen">
@@ -38,19 +38,19 @@
         <div class="nav-arrow arrow-right" onclick="event.stopPropagation(); nextImg()">&#10095;</div>
 
         <div class="modal-content" onclick="event.stopPropagation()">
-            <div id="modal-counter" class="text-[10px] font-black tracking-[0.3em] text-yellow-500 uppercase">0 / 0</div>
+            <div id="modal-counter" class="text-[10px] font-black tracking-[0.4em] text-yellow-500 uppercase mb-2">0 / 0</div>
             
-            <img id="modal-img" class="rounded-xl shadow-2xl border border-white/10 max-h-[70vh] w-auto">
+            <img id="modal-img" class="rounded-lg border border-white/10">
             
-            <div class="glass p-4 rounded-2xl w-full max-w-2xl border-white/5">
-                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Prompt Utilizzato</p>
-                <p id="modal-prompt-text" class="text-xs text-slate-200 leading-relaxed italic"></p>
+            <div class="glass p-5 rounded-2xl w-full max-w-3xl border-white/10 shadow-2xl mt-4">
+                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-left">Prompt Utilizzato</p>
+                <p id="modal-prompt-text" class="text-sm text-slate-200 leading-relaxed italic"></p>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-3">
-                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-6 py-3 rounded-full font-black uppercase text-[10px] tracking-widest shadow-lg">Ripristina Parametri</button>
-                <button id="modal-download-btn" class="bg-white/10 text-white px-6 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/20">Scarica Immagine</button>
-                <button onclick="closeModal()" class="bg-red-500/10 text-red-500 px-6 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border border-red-500/20">Chiudi</button>
+            <div class="flex flex-wrap justify-center gap-4 mt-2">
+                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-8 py-3 rounded-full font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all">Usa Parametri</button>
+                <button id="modal-download-btn" class="bg-white/5 text-white px-8 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/20 transition-all">Download</button>
+                <button onclick="closeModal()" class="bg-white/5 text-slate-400 px-8 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border border-white/5 hover:text-white">Chiudi</button>
             </div>
         </div>
     </div>
@@ -70,14 +70,14 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <div class="glass p-8 rounded-3xl space-y-6 h-fit shadow-2xl">
+            <div class="glass p-8 rounded-3xl space-y-6 h-fit shadow-2xl border-white/5">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Descrizione Visione</label>
-                    <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 text-white" rows="4" placeholder="Cosa vuoi creare?"></textarea>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prompt</label>
+                    <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 text-white transition-all" rows="4" placeholder="Descrivi la tua visione..."></textarea>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-red-400/60 uppercase tracking-widest">Negative Prompt</label>
+                    <label class="text-[10px] font-bold text-red-400/60 uppercase tracking-widest">Negativo</label>
                     <textarea id="negative" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500/50 text-white text-sm" rows="2" placeholder="Cosa escludere..."></textarea>
                 </div>
                 
@@ -85,16 +85,16 @@
                     <div class="space-y-2">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Stile</label>
                         <select id="style" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
-                            <option value="none">Puro (Nessuno)</option>
+                            <option value="none">Puro</option>
                             <option value="photorealistic">Fotorealismo</option>
                             <option value="cyberpunk">Cyberpunk</option>
-                            <option value="fantasy">Epic Fantasy</option>
-                            <option value="anime">Anime Style</option>
-                            <option value="oil">Pittura a Olio</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="anime">Anime</option>
+                            <option value="oil">Olio su tela</option>
                         </select>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Formato</label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ratio</label>
                         <select id="ratio" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
                             <option value="1:1">1:1</option>
                             <option value="16:9">16:9</option>
@@ -112,22 +112,22 @@
             </div>
 
             <div class="lg:col-span-2 space-y-8">
-                <div id="preview-area" class="glass min-h-[500px] rounded-[2.5rem] flex flex-col items-center justify-center p-6 relative shadow-2xl border-white/10 overflow-hidden">
+                <div id="preview-area" class="glass min-h-[550px] rounded-[2.5rem] flex flex-col items-center justify-center p-8 relative shadow-2xl border-white/10 overflow-hidden">
                     <div id="loader" class="hidden flex flex-col items-center gap-4 text-center">
                         <div class="loader"></div>
                         <p class="text-xs font-black uppercase tracking-[0.3em] text-yellow-500">Generazione in corso...</p>
                     </div>
-                    <img id="out-img" onclick="openModal(0)" class="hidden max-w-full rounded-2xl shadow-2xl border border-white/5">
+                    <img id="out-img" onclick="openModal(0)" class="hidden shadow-2xl border border-white/5">
                     <div id="ph" class="text-9xl font-black italic opacity-5 select-none uppercase">Lumina</div>
-                    <button id="var-btn" onclick="generateVariation()" class="hidden absolute bottom-6 right-6 bg-white/10 hover:bg-yellow-500 hover:text-black backdrop-blur-md px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Crea Variazione</button>
+                    <button id="var-btn" onclick="generateVariation()" class="hidden absolute bottom-8 right-8 bg-black/40 hover:bg-yellow-500 hover:text-black backdrop-blur-xl px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Variazione</button>
                 </div>
 
-                <div class="glass p-6 rounded-3xl space-y-4">
+                <div class="glass p-6 rounded-3xl space-y-4 border-white/5">
                     <div class="flex justify-between items-center border-b border-white/5 pb-4">
                         <h2 class="text-xs font-black uppercase tracking-[0.3em] text-yellow-500">Session Gallery</h2>
                         <div class="flex gap-2">
-                            <button onclick="downloadZip()" class="text-[9px] font-bold bg-white/5 px-4 py-2 rounded-full uppercase tracking-widest">Zip Export</button>
-                            <button onclick="clearG()" class="text-[9px] font-bold border border-white/10 px-4 py-2 rounded-full uppercase tracking-widest">Reset</button>
+                            <button onclick="downloadZip()" class="text-[9px] font-bold bg-white/5 px-4 py-2 rounded-full uppercase tracking-widest hover:bg-white/10">Esporta Zip</button>
+                            <button onclick="clearG()" class="text-[9px] font-bold border border-white/10 px-4 py-2 rounded-full uppercase tracking-widest hover:bg-red-500/10 hover:border-red-500/20">Reset</button>
                         </div>
                     </div>
                     <div id="gallery" class="gallery-wrapper"></div>
@@ -203,9 +203,8 @@
                 const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
                 const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                const outImg = document.getElementById('out-img');
-                outImg.src = url;
-                outImg.classList.remove('hidden');
+                document.getElementById('out-img').src = url;
+                document.getElementById('out-img').classList.remove('hidden');
                 document.getElementById('var-btn').classList.remove('hidden');
 
                 const historyItem = { ...currentParams, url: url, hex: d.image, seed: d.seed };
@@ -213,7 +212,7 @@
                 galleryData.push(d.image);
                 renderGallery();
             } catch(e) {
-                alert("Errore Generazione.");
+                alert("Errore Server.");
             } finally {
                 document.getElementById('loader').classList.add('hidden');
             }
@@ -249,7 +248,7 @@
             document.getElementById('modal-download-btn').onclick = () => {
                 const a = document.createElement('a');
                 a.href = item.url;
-                a.download = `lumina_gen_${lastSeed}.png`;
+                a.download = `lumina_gen.png`;
                 a.click();
             };
         }
@@ -294,7 +293,7 @@
             const d = await r.json();
             const a = document.createElement('a');
             a.href = "data:application/zip;base64," + d.zip;
-            a.download = "Lumina_Export.zip";
+            a.download = "Lumina_Session.zip";
             a.click();
         }
 
