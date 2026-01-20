@@ -10,10 +10,12 @@
         .glass { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
         .loader { border: 4px solid #1e293b; border-top: 4px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .gallery-item { cursor: pointer; transition: transform 0.2s; }
+        .gallery-item:hover { transform: scale(1.05); }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
-    <div class="max-w-3xl mx-auto space-y-8">
+    <div class="max-w-4xl mx-auto space-y-8">
         <header class="text-center">
             <h1 class="text-4xl font-black text-yellow-500 italic uppercase tracking-tighter">AI Studio <span class="text-white">PRO</span></h1>
             <p class="text-gray-500 text-[10px] tracking-[0.3em] font-bold uppercase mt-2">Server Attivo: 93.51.72.195</p>
@@ -22,7 +24,7 @@
         <div class="glass p-8 space-y-6 shadow-2xl">
             <textarea id="prompt" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 transition-all text-lg" rows="3" placeholder="Descrivi la tua visione..."></textarea>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col gap-1">
                     <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Formato</label>
                     <select id="ratio" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
@@ -35,72 +37,156 @@
                     <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Seed (-1 = Random)</label>
                     <input type="number" id="seed" value="-1" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
                 </div>
-                <div class="flex items-end">
-                    <button onclick="genera()" class="w-full bg-yellow-500 text-black font-black py-3 rounded-xl uppercase hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 active:scale-95 transition-all">
-                        Genera
-                    </button>
+                <div class="flex flex-col gap-1 md:col-span-2">
+                    <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Stile</label>
+                    <select id="style" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
+                        <option value="none">Nessuno</option>
+                        <option value="photorealistic">Fotorealistico</option>
+                        <option value="sci-fi">Sci-Fi</option>
+                        <option value="fantasy">Fantasy</option>
+                        <option value="cyberpunk">Cyberpunk</option>
+                        <option value="anime">Anime</option>
+                        <option value="watercolor">Acquerello</option>
+                        <option value="oil painting">Pittura a olio</option>
+                    </select>
                 </div>
             </div>
+            
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="enhance" class="form-checkbox h-4 w-4 text-yellow-500 bg-slate-900 border-gray-600 rounded">
+                <label for="enhance" class="text-sm text-gray-300">Migliora Prompt con AI (sperimentale)</label>
+            </div>
+
+            <button onclick="genera()" class="w-full bg-yellow-500 text-black font-black py-3 rounded-xl uppercase hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 active:scale-95 transition-all">
+                Genera Immagine
+            </button>
         </div>
 
-        <div class="glass min-h-[400px] flex flex-col items-center justify-center p-6 relative">
+        <section id="main-display" class="glass min-h-[400px] flex flex-col items-center justify-center p-6 relative">
             <div id="loader" class="loader"></div>
-            <div id="result-box" class="hidden flex flex-col items-center gap-6">
-                <img id="output-img" class="max-w-full rounded-xl shadow-2xl border border-white/10">
-                <div class="flex gap-4">
-                    <button onclick="download()" class="text-[10px] font-bold uppercase border border-white/20 px-6 py-2 rounded-full hover:bg-white/10">Salva Immagine</button>
-                    <span id="used-seed" class="text-[10px] text-gray-500 self-center"></span>
-                </div>
+            <img id="current-output-img" class="hidden max-w-full rounded-xl shadow-2xl border border-white/10 mb-4">
+            <div id="current-info" class="hidden text-center">
+                <p class="text-[10px] text-gray-400">Prompt: <span id="current-prompt"></span></p>
+                <p class="text-[10px] text-gray-400">Seed: <span id="current-seed"></span></p>
             </div>
             <div id="placeholder" class="text-6xl font-black italic uppercase opacity-5 select-none tracking-tighter text-center">In attesa di prompt</div>
-        </div>
+        </section>
+
+        <section id="gallery-section" class="glass p-6 space-y-4 shadow-xl">
+            <h2 class="text-xl font-bold text-yellow-500">Galleria</h2>
+            <div id="gallery" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                </div>
+            <div class="flex justify-end gap-4 mt-4">
+                <button onclick="clearGallery()" class="text-[10px] font-bold uppercase border border-white/20 px-6 py-2 rounded-full hover:bg-white/10">Svuota Galleria</button>
+                <button onclick="downloadAllImages()" class="text-[10px] font-bold uppercase bg-white/10 px-6 py-2 rounded-full hover:bg-white/20">Scarica tutto (ZIP)</button>
+            </div>
+        </section>
     </div>
 
     <script>
-        // Endpoint diretto al tuo IP pubblico
         const API_URL = "http://93.51.72.195:8000"; 
+        let generatedImagesData = []; // Array per conservare i dati delle immagini
 
         async function genera() {
-            const p = document.getElementById('prompt').value;
-            if(!p) return alert("Inserisci una descrizione!");
+            const prompt = document.getElementById('prompt').value;
+            if(!prompt) return alert("Inserisci una descrizione!");
 
-            document.getElementById('loader').style.display = "block";
-            document.getElementById('result-box').classList.add('hidden');
-            document.getElementById('placeholder').classList.add('hidden');
+            const loader = document.getElementById('loader');
+            const outputImg = document.getElementById('current-output-img');
+            const infoBox = document.getElementById('current-info');
+            const placeholder = document.getElementById('placeholder');
+
+            loader.style.display = "block";
+            outputImg.classList.add('hidden');
+            infoBox.classList.add('hidden');
+            placeholder.classList.add('hidden');
 
             try {
-                const r = await fetch(`${API_URL}/generate`, {
+                const response = await fetch(`${API_URL}/generate`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        prompt: p,
+                        prompt: prompt,
+                        style: document.getElementById('style').value,
                         seed: parseInt(document.getElementById('seed').value),
-                        ratio: document.getElementById('ratio').value
+                        ratio: document.getElementById('ratio').value,
+                        enhance: document.getElementById('enhance').checked
                     })
                 });
                 
-                if (!r.ok) throw new Error();
+                if (!response.ok) throw new Error("Errore dal server AI.");
                 
-                const d = await r.json();
-                const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-                const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
+                const data = await response.json();
+                const bytes = new Uint8Array(data.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+                const imgUrl = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                document.getElementById('output-img').src = url;
-                document.getElementById('used-seed').innerText = "Seed: " + d.seed;
-                document.getElementById('result-box').classList.remove('hidden');
+                outputImg.src = imgUrl;
+                document.getElementById('current-prompt').innerText = data.final_prompt;
+                document.getElementById('current-seed').innerText = data.seed;
+                
+                outputImg.classList.remove('hidden');
+                infoBox.classList.remove('hidden');
+
+                // Aggiungi alla galleria
+                const gallery = document.getElementById('gallery');
+                const imgElement = document.createElement('img');
+                imgElement.src = imgUrl;
+                imgElement.alt = data.final_prompt;
+                imgElement.classList.add('w-full', 'h-24', 'object-cover', 'rounded-lg', 'border', 'border-white/5', 'gallery-item');
+                gallery.appendChild(imgElement);
+
+                // Salva i dati dell'immagine per il download ZIP
+                generatedImagesData.push({hex: data.image, prompt: data.final_prompt, seed: data.seed});
+
             } catch(e) {
-                alert("Connessione fallita. Verifica il Port Forwarding sul router.");
-                document.getElementById('placeholder').classList.remove('hidden');
+                alert(`Connessione fallita: ${e.message}. Verifica Port Forwarding e server.`);
+                placeholder.classList.remove('hidden');
             } finally {
-                document.getElementById('loader').style.display = "none";
+                loader.style.display = "none";
             }
         }
 
         function download() {
             const a = document.createElement('a');
-            a.href = document.getElementById('output-img').src;
+            a.href = document.getElementById('current-output-img').src;
             a.download = 'ai-art.png';
             a.click();
+        }
+
+        function clearGallery() {
+            document.getElementById('gallery').innerHTML = '';
+            generatedImagesData = [];
+        }
+
+        async function downloadAllImages() {
+            if (generatedImagesData.length === 0) {
+                return alert("Nessuna immagine nella galleria da scaricare!");
+            }
+
+            // Estrai solo i dati hex delle immagini
+            const imagesHex = generatedImagesData.map(item => item.hex);
+
+            try {
+                const response = await fetch(`${API_URL}/download_zip`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ images: imagesHex })
+                });
+
+                if (!response.ok) throw new Error("Errore nel download ZIP dal server.");
+
+                const data = await response.json();
+                const zipBlob = new Blob([new Uint8Array(atob(data.zip_file).split('').map(char => char.charCodeAt(0)))], {type: 'application/zip'});
+                const zipUrl = URL.createObjectURL(zipBlob);
+
+                const a = document.createElement('a');
+                a.href = zipUrl;
+                a.download = 'ai_generations.zip';
+                a.click();
+                URL.revokeObjectURL(zipUrl); // Pulisci l'URL creato
+            } catch (e) {
+                alert(`Errore nel download ZIP: ${e.message}`);
+            }
         }
     </script>
 </body>
