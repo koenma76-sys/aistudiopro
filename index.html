@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>AI STUDIO PRO - HTTPS 8081</title>
+    <title>AI STUDIO PRO - REMOTE MODE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #020617; color: white; font-family: sans-serif; }
@@ -11,79 +11,52 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-6 md:p-12">
+<body class="p-4 md:p-10">
     <div class="max-w-4xl mx-auto space-y-6">
-        <header class="flex justify-between items-center border-b border-yellow-500/30 pb-4">
-            <div>
-                <h1 class="text-2xl font-black text-yellow-500 italic uppercase">AI STUDIO <span class="text-white font-light">PRO</span></h1>
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Secure Port 8081</p>
-            </div>
-            <div id="status" class="text-[10px] font-bold px-4 py-2 rounded-full border border-white/10 bg-white/5">Verifica Server...</div>
+        <header class="flex flex-wrap justify-between items-center gap-4 border-b border-white/10 pb-6">
+            <h1 class="text-2xl font-black text-yellow-500 italic uppercase">AI STUDIO <span class="text-white font-light">PRO</span></h1>
+            <input id="tunnel-link" class="bg-slate-900 border border-white/10 rounded-full px-4 py-2 text-[10px] w-64 outline-none focus:border-yellow-500" placeholder="Incolla link https://...loca.lt">
         </header>
 
         <div class="glass p-6 space-y-4 shadow-2xl">
-            <textarea id="prompt" class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-sm outline-none focus:border-yellow-500" rows="3" placeholder="Descrivi l'immagine..."></textarea>
-            
+            <textarea id="prompt" class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-sm outline-none focus:border-yellow-500" rows="3" placeholder="Descrivi immagine..."></textarea>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <select id="ratio" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs">
-                    <option value="16:9">16:9 Cinema</option>
-                    <option value="9:16">9:16 Smartphone</option>
-                    <option value="1:1">1:1 Quadrato</option>
+                <select id="ratio" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs outline-none">
+                    <option value="16:9">16:9</option>
+                    <option value="9:16">9:16</option>
                 </select>
-                <select id="style" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs">
-                    <option value="photorealistic, 8k">📸 Foto</option>
-                    <option value="cinematic digital art">🎨 Digital Art</option>
-                </select>
-                <input type="number" id="seed" value="-1" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs">
-                <button onclick="generate()" class="bg-yellow-500 text-black font-black rounded-lg text-xs uppercase hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">Genera</button>
+                <input type="number" id="seed" value="-1" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs outline-none" placeholder="Seed">
+                <button onclick="generate()" class="bg-yellow-500 text-black font-black rounded-lg text-xs uppercase hover:bg-yellow-400 col-span-2">Genera</button>
             </div>
         </div>
 
-        <div class="glass min-h-[450px] flex flex-col items-center justify-center p-6 relative">
+        <div class="glass min-h-[400px] flex flex-col items-center justify-center p-6 relative">
             <div id="ld" class="loader"></div>
             <div id="res-box" class="hidden flex flex-col items-center gap-6">
-                <img id="out" class="max-h-[65vh] rounded-xl shadow-2xl border border-white/10">
-                <button onclick="downloadImg()" class="bg-white/5 px-8 py-2 rounded-full text-[10px] font-bold uppercase border border-white/10 hover:bg-white/10">Scarica Immagine</button>
+                <img id="out" class="max-h-[60vh] rounded-xl shadow-2xl border border-white/10">
             </div>
-            <div id="ph" class="text-7xl font-black italic uppercase opacity-5 select-none">AI Studio</div>
+            <div id="ph" class="text-7xl font-black italic uppercase opacity-5">Remote</div>
         </div>
     </div>
 
     <script>
-        const NAS_IP = window.location.hostname;
-        // Il sito gira su 8081 (HTTPS), il server AI sulla 8000 (HTTP)
-        const API_URL = `http://${NAS_IP}:8000`;
-
-        async function checkServer() {
-            const s = document.getElementById('status');
-            try {
-                const r = await fetch(`${API_URL}/health`);
-                if(r.ok) {
-                    s.innerText = "● Server AI Pronto";
-                    s.className = "text-[10px] font-bold px-4 py-2 rounded-full border border-green-500/20 bg-green-500/10 text-green-500";
-                }
-            } catch(e) {
-                s.innerText = "○ Server AI Offline";
-                s.className = "text-[10px] font-bold px-4 py-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500";
-            }
-        }
-        checkServer();
+        document.getElementById('tunnel-link').value = localStorage.getItem('last_tunnel') || "";
 
         async function generate() {
+            const tunnel = document.getElementById('tunnel-link').value.trim();
             const p = document.getElementById('prompt').value;
-            if(!p) return;
+            if(!p || !tunnel) return alert("Inserisci prompt e link del tunnel!");
 
+            localStorage.setItem('last_tunnel', tunnel);
             document.getElementById('ld').style.display = "block";
             document.getElementById('res-box').classList.add('hidden');
-            document.getElementById('ph').classList.add('hidden');
 
             try {
-                const r = await fetch(`${API_URL}/generate`, {
+                const r = await fetch(`${tunnel}/generate`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         prompt: p,
-                        style: document.getElementById('style').value,
                         seed: parseInt(document.getElementById('seed').value),
                         ratio: document.getElementById('ratio').value
                     })
@@ -93,14 +66,10 @@
                 document.getElementById('out').src = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 document.getElementById('res-box').classList.remove('hidden');
             } catch(e) {
-                alert("ERRORE DI SICUREZZA BROWSER\n\nPoiché il sito è in HTTPS (8081) e il server è in HTTP (8000), devi autorizzare la connessione.\n\nFai così:\n1. Apri una nuova scheda e vai su http://" + NAS_IP + ":8000/health\n2. Se vedi un avviso, clicca su 'Avanzate' e poi 'Procedi'.\n3. Torna qui e ricarica la pagina.");
+                alert("Errore di connessione. Assicurati che il link sia corretto e di aver cliccato 'Continue' sulla pagina del tunnel.");
             } finally {
                 document.getElementById('ld').style.display = "none";
             }
-        }
-
-        function downloadImg() {
-            const a = document.createElement('a'); a.href = document.getElementById('out').src; a.download = "ai-export.png"; a.click();
         }
     </script>
 </body>
