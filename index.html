@@ -2,77 +2,89 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>AI STUDIO PRO - CLOUD</title>
+    <title>AI STUDIO PRO - HTTPS 8081</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #020617; color: white; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.05); border-radius: 2rem; backdrop-filter: blur(15px); }
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
         .loader { border: 4px solid #1e293b; border-top: 4px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-[1400px] mx-auto space-y-6">
-        <header class="glass p-6 flex justify-between items-center border-b-2 border-yellow-500 shadow-2xl">
-            <h1 class="text-2xl font-black italic text-yellow-500 uppercase tracking-tighter">AI STUDIO <span class="text-white font-light">PRO</span></h1>
-            <div id="status" class="text-[10px] font-black uppercase px-4 py-2 rounded-full border border-white/10">Checking Connection...</div>
+<body class="p-6 md:p-12">
+    <div class="max-w-4xl mx-auto space-y-6">
+        <header class="flex justify-between items-center border-b border-yellow-500/30 pb-4">
+            <div>
+                <h1 class="text-2xl font-black text-yellow-500 italic uppercase">AI STUDIO <span class="text-white font-light">PRO</span></h1>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Secure Port 8081</p>
+            </div>
+            <div id="status" class="text-[10px] font-bold px-4 py-2 rounded-full border border-white/10 bg-white/5">Verifica Server...</div>
         </header>
 
-        <div class="glass p-6 shadow-2xl">
-            <textarea id="prompt" rows="2" class="w-full bg-black/40 border border-slate-800 rounded-2xl p-4 text-sm outline-none focus:border-yellow-500 mb-4" placeholder="Inserisci prompt..."></textarea>
-            <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
-                <select id="style" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none"><option value="photorealistic, 8k">📸 Photo</option><option value="digital art">🎨 Art</option></select>
-                <select id="res" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none"><option value="720p">📺 720p</option><option value="1080p">🎬 1080p</option></select>
-                <select id="ratio" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none"><option value="16:9">📐 16:9</option><option value="9:16">📱 9:16</option><option value="4:3">📺 4:3</option></select>
-                <input type="number" id="seed" value="-1" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none">
-                <button onclick="generate()" class="md:col-span-2 bg-yellow-500 text-black font-black py-3 rounded-xl uppercase text-xs tracking-widest hover:bg-yellow-400">Genera Immagine</button>
+        <div class="glass p-6 space-y-4 shadow-2xl">
+            <textarea id="prompt" class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-sm outline-none focus:border-yellow-500" rows="3" placeholder="Descrivi l'immagine..."></textarea>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <select id="ratio" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs">
+                    <option value="16:9">16:9 Cinema</option>
+                    <option value="9:16">9:16 Smartphone</option>
+                    <option value="1:1">1:1 Quadrato</option>
+                </select>
+                <select id="style" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs">
+                    <option value="photorealistic, 8k">📸 Foto</option>
+                    <option value="cinematic digital art">🎨 Digital Art</option>
+                </select>
+                <input type="number" id="seed" value="-1" class="bg-slate-900 border border-white/10 rounded-lg p-3 text-xs">
+                <button onclick="generate()" class="bg-yellow-500 text-black font-black rounded-lg text-xs uppercase hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">Genera</button>
             </div>
         </div>
 
-        <div class="glass min-h-[500px] flex flex-col items-center justify-center p-8 relative shadow-2xl">
+        <div class="glass min-h-[450px] flex flex-col items-center justify-center p-6 relative">
             <div id="ld" class="loader"></div>
-            <div id="res-box" class="hidden flex flex-col items-center space-y-6">
-                <img id="out" class="max-h-[70vh] rounded-2xl shadow-2xl border border-white/10">
-                <button onclick="downloadImg()" class="bg-white/5 border border-white/10 px-10 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white/10">Salva Immagine</button>
+            <div id="res-box" class="hidden flex flex-col items-center gap-6">
+                <img id="out" class="max-h-[65vh] rounded-xl shadow-2xl border border-white/10">
+                <button onclick="downloadImg()" class="bg-white/5 px-8 py-2 rounded-full text-[10px] font-bold uppercase border border-white/10 hover:bg-white/10">Scarica Immagine</button>
             </div>
-            <div id="ph" class="text-9xl font-black italic uppercase opacity-5 select-none text-center">AI STUDIO</div>
+            <div id="ph" class="text-7xl font-black italic uppercase opacity-5 select-none">AI Studio</div>
         </div>
     </div>
 
     <script>
-        const API_BASE = "http://93.51.72.195:8000";
+        const NAS_IP = window.location.hostname;
+        // Il sito gira su 8081 (HTTPS), il server AI sulla 8000 (HTTP)
+        const API_URL = `http://${NAS_IP}:8000`;
 
-        async function check() {
+        async function checkServer() {
             const s = document.getElementById('status');
             try {
-                const r = await fetch(`${API_BASE}/health`);
+                const r = await fetch(`${API_URL}/health`);
                 if(r.ok) {
-                    s.innerText = "NAS Online";
-                    s.className = "text-[10px] font-black uppercase px-4 py-2 rounded-full border border-green-500/20 bg-green-500/10 text-green-500";
+                    s.innerText = "● Server AI Pronto";
+                    s.className = "text-[10px] font-bold px-4 py-2 rounded-full border border-green-500/20 bg-green-500/10 text-green-500";
                 }
             } catch(e) {
-                s.innerText = "NAS Offline / Blocked";
-                s.className = "text-[10px] font-black uppercase px-4 py-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500";
+                s.innerText = "○ Server AI Offline";
+                s.className = "text-[10px] font-bold px-4 py-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500";
             }
         }
-        check();
+        checkServer();
 
         async function generate() {
             const p = document.getElementById('prompt').value;
             if(!p) return;
+
             document.getElementById('ld').style.display = "block";
             document.getElementById('res-box').classList.add('hidden');
             document.getElementById('ph').classList.add('hidden');
 
             try {
-                const r = await fetch(`${API_BASE}/generate`, {
+                const r = await fetch(`${API_URL}/generate`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         prompt: p,
                         style: document.getElementById('style').value,
                         seed: parseInt(document.getElementById('seed').value),
-                        resolution: document.getElementById('res').value,
                         ratio: document.getElementById('ratio').value
                     })
                 });
@@ -81,18 +93,15 @@
                 document.getElementById('out').src = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 document.getElementById('res-box').classList.remove('hidden');
             } catch(e) {
-                alert("Il NAS non risponde.");
+                alert("ERRORE DI SICUREZZA BROWSER\n\nPoiché il sito è in HTTPS (8081) e il server è in HTTP (8000), devi autorizzare la connessione.\n\nFai così:\n1. Apri una nuova scheda e vai su http://" + NAS_IP + ":8000/health\n2. Se vedi un avviso, clicca su 'Avanzate' e poi 'Procedi'.\n3. Torna qui e ricarica la pagina.");
             } finally {
                 document.getElementById('ld').style.display = "none";
             }
         }
+
         function downloadImg() {
-            const a = document.createElement('a'); a.href = document.getElementById('out').src; a.download = "ai-studio.png"; a.click();
+            const a = document.createElement('a'); a.href = document.getElementById('out').src; a.download = "ai-export.png"; a.click();
         }
     </script>
 </body>
 </html>
-
-
-
-
