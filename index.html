@@ -3,110 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI STUDIO PRO - Full Features</title>
+    <title>LUMINA AI | Studio Visionario</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #020617; color: white; font-family: sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.5rem; }
-        .loader { border: 4px solid #1e293b; border-top: 4px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: none; }
+        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
+        .lumina-btn { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); transition: all 0.3s ease; }
+        .lumina-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4); }
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .gallery-item { cursor: pointer; transition: transform 0.2s; }
-        .gallery-item:hover { transform: scale(1.05); }
     </style>
 </head>
-<body class="p-6 md:p-12 min-h-screen">
-    <div class="max-w-4xl mx-auto space-y-8">
+<body class="p-4 md:p-10">
+    <div class="max-w-5xl mx-auto space-y-10">
         <header class="text-center">
-            <h1 class="text-4xl font-black text-yellow-500 italic uppercase tracking-tighter">AI Studio <span class="text-white">PRO</span></h1>
-            <p class="text-gray-500 text-[10px] tracking-[0.3em] font-bold uppercase mt-2">Server Attivo: 93.51.72.195</p>
+            <h1 class="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">LUMINA AI</h1>
+            <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.5em] mt-2">Browser-Side Translation Active</p>
         </header>
 
-        <div class="glass p-8 space-y-6 shadow-2xl">
-            <textarea id="prompt" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 transition-all text-lg" rows="3" placeholder="Descrivi la tua visione..."></textarea>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Formato</label>
-                    <select id="ratio" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
-                        <option value="1:1">Quadrato (1:1)</option>
-                        <option value="16:9">Orizzontale (16:9)</option>
-                        <option value="9:16">Verticale (9:16)</option>
-                    </select>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="glass p-6 rounded-3xl space-y-6 h-fit">
+                <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 transition-all text-white" rows="4" placeholder="Scrivi in qualsiasi lingua..."></textarea>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Stile</label>
+                        <select id="style" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none">
+                            <option value="none">Nessuno (Puro)</option>
+                            <option value="photorealistic">Fotorealismo</option>
+                            <option value="cyberpunk">Cyberpunk</option>
+                            <option value="fantasy">Epic Fantasy</option>
+                            <option value="anime">Anime Style</option>
+                            <option value="oil">Pittura a Olio</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Formato</label>
+                            <select id="ratio" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none">
+                                <option value="1:1">1:1</option>
+                                <option value="16:9">16:9</option>
+                                <option value="9:16">9:16</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Seed</label>
+                            <input type="number" id="seed" value="-1" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none">
+                        </div>
+                    </div>
+
+                    <label class="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-white/5 transition-all">
+                        <input type="checkbox" id="enhance" class="w-4 h-4 accent-yellow-500" checked>
+                        <span class="text-xs font-medium text-slate-300">Prompt Enhancement AI</span>
+                    </label>
+
+                    <button onclick="processAndGenerate()" class="lumina-btn w-full text-black font-black py-4 rounded-2xl uppercase tracking-tighter">Genera</button>
                 </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Seed (-1 = Random)</label>
-                    <input type="number" id="seed" value="-1" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
-                </div>
-                <div class="flex flex-col gap-1 md:col-span-2">
-                    <label class="text-[10px] uppercase font-bold text-gray-400 ml-2">Stile</label>
-                    <select id="style" class="bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none focus:border-yellow-500">
-                        <option value="none">Nessuno</option>
-                        <option value="photorealistic">Fotorealistico</option>
-                        <option value="sci-fi">Sci-Fi</option>
-                        <option value="fantasy">Fantasy</option>
-                        <option value="cyberpunk">Cyberpunk</option>
-                        <option value="anime">Anime</option>
-                        <option value="watercolor">Acquerello</option>
-                        <option value="oil painting">Pittura a olio</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-2">
-                <input type="checkbox" id="enhance" class="form-checkbox h-4 w-4 text-yellow-500 bg-slate-900 border-gray-600 rounded">
-                <label for="enhance" class="text-sm text-gray-300">Migliora Prompt con AI (sperimentale)</label>
             </div>
 
-            <button onclick="genera()" class="w-full bg-yellow-500 text-black font-black py-3 rounded-xl uppercase hover:bg-yellow-400 shadow-lg shadow-yellow-500/20 active:scale-95 transition-all">
-                Genera Immagine
-            </button>
+            <div class="lg:col-span-2 space-y-8">
+                <div id="preview-area" class="glass min-h-[450px] rounded-3xl flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                    <div id="loader" class="hidden flex flex-col items-center gap-4">
+                        <div class="loader"></div>
+                        <p id="loader-text" class="text-xs font-bold animate-pulse uppercase tracking-widest text-yellow-500">Traduzione in corso...</p>
+                    </div>
+                    <img id="out-img" class="hidden max-w-full rounded-2xl shadow-2xl border border-white/10">
+                    <div id="ph" class="text-8xl font-black italic opacity-5 select-none tracking-tighter">LUMINA</div>
+                </div>
+
+                <div class="glass p-6 rounded-3xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-black uppercase tracking-widest text-yellow-500">Galleria Sessione</h2>
+                        <div class="flex gap-2">
+                            <button onclick="downloadZip()" class="text-[9px] font-bold border border-white/10 px-4 py-2 rounded-full hover:bg-white/5 uppercase">Scarica ZIP</button>
+                            <button onclick="clearG()" class="text-[9px] font-bold border border-white/10 px-4 py-2 rounded-full hover:bg-red-500/20 uppercase">Reset</button>
+                        </div>
+                    </div>
+                    <div id="gallery" class="grid grid-cols-4 md:grid-cols-6 gap-3"></div>
+                </div>
+            </div>
         </div>
-
-        <section id="main-display" class="glass min-h-[400px] flex flex-col items-center justify-center p-6 relative">
-            <div id="loader" class="loader"></div>
-            <img id="current-output-img" class="hidden max-w-full rounded-xl shadow-2xl border border-white/10 mb-4">
-            <div id="current-info" class="hidden text-center">
-                <p class="text-[10px] text-gray-400">Prompt: <span id="current-prompt"></span></p>
-                <p class="text-[10px] text-gray-400">Seed: <span id="current-seed"></span></p>
-            </div>
-            <div id="placeholder" class="text-6xl font-black italic uppercase opacity-5 select-none tracking-tighter text-center">In attesa di prompt</div>
-        </section>
-
-        <section id="gallery-section" class="glass p-6 space-y-4 shadow-xl">
-            <h2 class="text-xl font-bold text-yellow-500">Galleria</h2>
-            <div id="gallery" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                </div>
-            <div class="flex justify-end gap-4 mt-4">
-                <button onclick="clearGallery()" class="text-[10px] font-bold uppercase border border-white/20 px-6 py-2 rounded-full hover:bg-white/10">Svuota Galleria</button>
-                <button onclick="downloadAllImages()" class="text-[10px] font-bold uppercase bg-white/10 px-6 py-2 rounded-full hover:bg-white/20">Scarica tutto (ZIP)</button>
-            </div>
-        </section>
     </div>
 
     <script>
-        const API_URL = "http://93.51.72.195:8000"; 
-        let generatedImagesData = []; // Array per conservare i dati delle immagini
+        const API_URL = "http://93.51.72.195:8000";
+        let galleryData = [];
 
-        async function genera() {
-            const prompt = document.getElementById('prompt').value;
-            if(!prompt) return alert("Inserisci una descrizione!");
+        // Funzione per tradurre il testo tramite API pubblica gratuita
+        async function translatePrompt(text) {
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURI(text)}`);
+                const data = await res.json();
+                return data[0][0][0];
+            } catch (e) {
+                console.error("Errore traduzione:", e);
+                return text; // In caso di errore usa il testo originale
+            }
+        }
+
+        async function processAndGenerate() {
+            const originalPrompt = document.getElementById('prompt').value;
+            if(!originalPrompt) return;
 
             const loader = document.getElementById('loader');
-            const outputImg = document.getElementById('current-output-img');
-            const infoBox = document.getElementById('current-info');
-            const placeholder = document.getElementById('placeholder');
+            const loaderText = document.getElementById('loader-text');
+            const outImg = document.getElementById('out-img');
+            const ph = document.getElementById('ph');
 
-            loader.style.display = "block";
-            outputImg.classList.add('hidden');
-            infoBox.classList.add('hidden');
-            placeholder.classList.add('hidden');
+            loader.classList.remove('hidden');
+            loaderText.innerText = "Traduzione in corso...";
+            outImg.classList.add('hidden');
+            ph.classList.add('hidden');
 
+            // 1. Traduzione nel browser
+            const translatedPrompt = await translatePrompt(originalPrompt);
+            loaderText.innerText = "Generazione immagine...";
+
+            // 2. Invio al Backend sul NAS
             try {
-                const response = await fetch(`${API_URL}/generate`, {
+                const r = await fetch(`${API_URL}/generate`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        prompt: prompt,
+                        prompt: translatedPrompt,
                         style: document.getElementById('style').value,
                         seed: parseInt(document.getElementById('seed').value),
                         ratio: document.getElementById('ratio').value,
@@ -114,79 +134,48 @@
                     })
                 });
                 
-                if (!response.ok) throw new Error("Errore dal server AI.");
+                const d = await r.json();
+                const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+                const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                const data = await response.json();
-                const bytes = new Uint8Array(data.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-                const imgUrl = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
+                outImg.src = url;
+                outImg.classList.remove('hidden');
+
+                // Aggiungi a Galleria
+                const g = document.getElementById('gallery');
+                const thumb = document.createElement('img');
+                thumb.src = url;
+                thumb.className = "w-full h-16 object-cover rounded-lg border border-white/10 cursor-pointer hover:scale-105 transition-all shadow-lg";
+                thumb.onclick = () => { outImg.src = url; };
+                g.prepend(thumb);
                 
-                outputImg.src = imgUrl;
-                document.getElementById('current-prompt').innerText = data.final_prompt;
-                document.getElementById('current-seed').innerText = data.seed;
-                
-                outputImg.classList.remove('hidden');
-                infoBox.classList.remove('hidden');
-
-                // Aggiungi alla galleria
-                const gallery = document.getElementById('gallery');
-                const imgElement = document.createElement('img');
-                imgElement.src = imgUrl;
-                imgElement.alt = data.final_prompt;
-                imgElement.classList.add('w-full', 'h-24', 'object-cover', 'rounded-lg', 'border', 'border-white/5', 'gallery-item');
-                gallery.appendChild(imgElement);
-
-                // Salva i dati dell'immagine per il download ZIP
-                generatedImagesData.push({hex: data.image, prompt: data.final_prompt, seed: data.seed});
-
+                galleryData.push(d.image);
             } catch(e) {
-                alert(`Connessione fallita: ${e.message}. Verifica Port Forwarding e server.`);
-                placeholder.classList.remove('hidden');
+                alert("Errore: Il NAS non risponde. Controlla porta 8000 e IP.");
             } finally {
-                loader.style.display = "none";
+                loader.classList.add('hidden');
             }
         }
 
-        function download() {
+        async function downloadZip() {
+            if(galleryData.length === 0) return;
+            const r = await fetch(`${API_URL}/zip`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ images: galleryData })
+            });
+            const d = await r.json();
             const a = document.createElement('a');
-            a.href = document.getElementById('current-output-img').src;
-            a.download = 'ai-art.png';
+            a.href = "data:application/zip;base64," + d.zip;
+            a.download = "lumina_collection.zip";
             a.click();
         }
 
-        function clearGallery() {
+        function clearG() {
             document.getElementById('gallery').innerHTML = '';
-            generatedImagesData = [];
-        }
-
-        async function downloadAllImages() {
-            if (generatedImagesData.length === 0) {
-                return alert("Nessuna immagine nella galleria da scaricare!");
-            }
-
-            // Estrai solo i dati hex delle immagini
-            const imagesHex = generatedImagesData.map(item => item.hex);
-
-            try {
-                const response = await fetch(`${API_URL}/download_zip`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ images: imagesHex })
-                });
-
-                if (!response.ok) throw new Error("Errore nel download ZIP dal server.");
-
-                const data = await response.json();
-                const zipBlob = new Blob([new Uint8Array(atob(data.zip_file).split('').map(char => char.charCodeAt(0)))], {type: 'application/zip'});
-                const zipUrl = URL.createObjectURL(zipBlob);
-
-                const a = document.createElement('a');
-                a.href = zipUrl;
-                a.download = 'ai_generations.zip';
-                a.click();
-                URL.revokeObjectURL(zipUrl); // Pulisci l'URL creato
-            } catch (e) {
-                alert(`Errore nel download ZIP: ${e.message}`);
-            }
+            galleryData = [];
+            document.getElementById('out-img').classList.add('hidden');
+            document.getElementById('ph').classList.remove('hidden');
         }
     </script>
 </body>
