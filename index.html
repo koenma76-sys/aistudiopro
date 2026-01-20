@@ -19,20 +19,18 @@
         .gallery-item { flex: 0 0 auto; width: 140px; height: 90px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .gallery-item:hover { border-color: #fbbf24; }
 
-        /* Modal Pop-up */
-        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .modal-content { max-width: 90%; max-height: 90%; position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         
-        /* Frecce Navigazione */
-        .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 24px; user-select: none; }
-        .nav-arrow:hover { background: #fbbf24; color: black; border-color: #fbbf24; }
-        .arrow-left { left: -80px; }
-        .arrow-right { right: -80px; }
+        .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; font-size: 20px; user-select: none; z-index: 110; }
+        .nav-arrow:hover { background: #fbbf24; color: black; }
+        .arrow-left { left: -70px; }
+        .arrow-right { right: -70px; }
         
         @media (max-width: 1024px) {
-            .nav-arrow { width: 45px; height: 45px; top: auto; bottom: -70px; transform: none; }
-            .arrow-left { left: 20%; }
-            .arrow-right { right: 20%; }
+            .nav-arrow { bottom: -80px; top: auto; transform: none; }
+            .arrow-left { left: 10%; }
+            .arrow-right { right: 10%; }
         }
     </style>
 </head>
@@ -44,11 +42,12 @@
                 <div class="nav-arrow arrow-left" onclick="prevImg()">&#10094;</div>
                 <img id="modal-img" class="rounded-2xl shadow-2xl border border-white/10 max-h-[75vh] w-auto">
                 <div class="nav-arrow arrow-right" onclick="nextImg()">&#10095;</div>
+                <div id="modal-counter" class="absolute -top-10 left-1/2 -translate-x-1/2 text-[10px] font-black tracking-[0.3em] text-yellow-500 uppercase bg-black/50 px-4 py-1 rounded-full border border-yellow-500/20"></div>
             </div>
 
             <div class="flex gap-4">
-                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-lg">Ripristina Sessione</button>
-                <button onclick="closeModal()" class="bg-white/10 text-white px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest border border-white/10">Chiudi</button>
+                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-6 py-3 rounded-full font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-all">Ripristina Sessione</button>
+                <button onclick="closeModal()" class="bg-white/5 text-white px-6 py-3 rounded-full font-black uppercase text-[10px] tracking-widest border border-white/10 hover:bg-white/10">Chiudi</button>
             </div>
         </div>
     </div>
@@ -60,9 +59,9 @@
                 <h1 class="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">LUMINA AI</h1>
                 <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.5em] mt-1">Visionary Image Studio</p>
             </div>
-            <div id="server-status" class="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full">
+            <div id="server-status" class="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full text-red-500">
                 <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                <span class="text-[10px] font-bold uppercase text-red-500 tracking-widest text-red-500">Offline</span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Offline</span>
             </div>
         </header>
 
@@ -71,12 +70,12 @@
             <div class="glass p-8 rounded-3xl space-y-6 h-fit shadow-2xl">
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Descrizione Visione</label>
-                    <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 text-white" rows="4" placeholder="Cosa vuoi creare?"></textarea>
+                    <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 text-white" rows="4" placeholder="Inserisci il tuo prompt..."></textarea>
                 </div>
 
                 <div class="space-y-2">
                     <label class="text-[10px] font-bold text-red-400/60 uppercase tracking-widest">Negative Prompt</label>
-                    <textarea id="negative" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500/50 text-white text-sm" rows="2" placeholder="Cosa non vuoi vedere..."></textarea>
+                    <textarea id="negative" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500/50 text-white text-sm" rows="2" placeholder="Cosa escludere..."></textarea>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -102,7 +101,7 @@
                 </div>
 
                 <label class="flex items-center gap-3 cursor-pointer p-3 rounded-2xl bg-white/5">
-                    <input type="checkbox" id="enhance" class="w-4 h-4 accent-yellow-500" checked>
+                    <input type="checkbox" id="enhance" class="w-4 h-4 accent-yellow-500">
                     <span class="text-xs font-medium text-slate-300 uppercase tracking-tighter">Auto-Enhance</span>
                 </label>
 
@@ -139,15 +138,15 @@
         let galleryData = []; 
         let fullHistory = []; 
         let lastSeed = -1;
-        let currentModalIdx = -1;
+        let currentIdx = -1;
 
         async function checkServer() {
             try {
                 const r = await fetch(API_URL + "/");
                 if(r.ok) {
                     const statusDiv = document.getElementById('server-status');
-                    statusDiv.className = "flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full";
-                    statusDiv.innerHTML = '<div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-[10px] font-bold uppercase text-green-500 tracking-widest">Server Online</span>';
+                    statusDiv.className = "flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-500";
+                    statusDiv.innerHTML = '<div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Online</span>';
                 }
             } catch(e) {}
         }
@@ -201,18 +200,16 @@
                 const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
                 const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                const outImg = document.getElementById('out-img');
-                outImg.src = url;
-                outImg.classList.remove('hidden');
+                document.getElementById('out-img').src = url;
+                document.getElementById('out-img').classList.remove('hidden');
                 document.getElementById('var-btn').classList.remove('hidden');
 
                 const historyItem = { ...currentParams, url: url, hex: d.image, seed: d.seed };
                 fullHistory.unshift(historyItem); 
                 galleryData.push(d.image);
-
                 renderGallery();
             } catch(e) {
-                alert("Errore di connessione.");
+                alert("Errore Generazione.");
             } finally {
                 document.getElementById('loader').classList.add('hidden');
             }
@@ -231,30 +228,21 @@
         }
 
         function openModal(index) {
-            currentModalIdx = index;
+            currentIdx = index;
             const item = fullHistory[index];
-            const modal = document.getElementById('modal');
-            const modalImg = document.getElementById('modal-img');
-            const restoreBtn = document.getElementById('modal-restore-btn');
+            document.getElementById('modal-img').src = item.url;
+            document.getElementById('modal-counter').innerText = `${fullHistory.length - index} / ${fullHistory.length}`;
+            document.getElementById('modal').style.display = 'flex';
             
-            modalImg.src = item.url;
-            modal.style.display = 'flex';
-            
-            restoreBtn.onclick = () => {
+            document.getElementById('modal-restore-btn').onclick = () => {
                 restoreParams(item);
                 closeModal();
             };
         }
 
-        function nextImg() {
-            if(currentModalIdx > 0) openModal(currentModalIdx - 1);
-        }
+        function nextImg() { if(currentIdx > 0) openModal(currentIdx - 1); }
+        function prevImg() { if(currentIdx < fullHistory.length - 1) openModal(currentIdx + 1); }
 
-        function prevImg() {
-            if(currentModalIdx < fullHistory.length - 1) openModal(currentModalIdx + 1);
-        }
-
-        // Supporto tastiera (Esc, Frecce)
         window.addEventListener('keydown', (e) => {
             if(document.getElementById('modal').style.display === 'flex') {
                 if(e.key === "ArrowRight") nextImg();
@@ -263,17 +251,13 @@
             }
         });
 
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
         function restoreParams(item) {
-            const outImg = document.getElementById('out-img');
-            outImg.src = item.url;
-            outImg.classList.remove('hidden');
+            document.getElementById('out-img').src = item.url;
+            document.getElementById('out-img').classList.remove('hidden');
             document.getElementById('ph').classList.add('hidden');
             document.getElementById('var-btn').classList.remove('hidden');
-            
             lastSeed = item.seed;
             document.getElementById('prompt').value = item.prompt;
             document.getElementById('negative').value = item.negative;
