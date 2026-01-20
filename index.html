@@ -12,15 +12,36 @@
         .lumina-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4); }
         .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .gallery-wrapper { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 10px; }
+        .gallery-wrapper::-webkit-scrollbar { height: 6px; }
+        .gallery-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .gallery-item { flex: 0 0 auto; width: 140px; height: 90px; object-fit: cover; border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .gallery-item:hover { border-color: #fbbf24; }
+
+        /* Modal Pop-up */
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { max-width: 90%; max-height: 90%; position: relative; }
     </style>
 </head>
 <body class="p-6 md:p-12 min-h-screen">
+
+    <div id="modal" onclick="closeModal()">
+        <div class="modal-content flex flex-col items-center gap-6" onclick="event.stopPropagation()">
+            <img id="modal-img" class="rounded-2xl shadow-2xl border border-white/10 max-h-[80vh] w-auto">
+            <div class="flex gap-4">
+                <button id="modal-restore-btn" class="bg-yellow-500 text-black px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest hover:scale-105 transition-all">Usa Prompt & Parametri</button>
+                <button onclick="closeModal()" class="bg-white/10 text-white px-6 py-3 rounded-full font-black uppercase text-xs tracking-widest border border-white/10">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-6xl mx-auto space-y-10">
         
         <header class="flex justify-between items-end border-b border-white/5 pb-6">
             <div>
                 <h1 class="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">LUMINA AI</h1>
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.5em] mt-1">Multi-Language Visionary Studio</p>
+                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.5em] mt-1">Visionary Image Studio</p>
             </div>
             <div id="server-status" class="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-full">
                 <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
@@ -32,13 +53,18 @@
             
             <div class="glass p-8 rounded-3xl space-y-6 h-fit shadow-2xl">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 tracking-widest">Descrizione Visione</label>
-                    <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 transition-all text-white" rows="4" placeholder="Scrivi in italiano o inglese..."></textarea>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Descrizione Visione</label>
+                    <textarea id="prompt" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-yellow-500 text-white" rows="4" placeholder="Cosa vuoi creare?"></textarea>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold text-red-400/60 uppercase tracking-widest">Negative Prompt</label>
+                    <textarea id="negative" class="w-full bg-slate-950/50 border border-white/10 rounded-2xl p-4 outline-none focus:border-red-500/50 text-white text-sm" rows="2" placeholder="Cosa non vuoi vedere..."></textarea>
                 </div>
                 
-                <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 tracking-widest">Stile Artistico</label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Stile</label>
                         <select id="style" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
                             <option value="none">Puro (Nessuno)</option>
                             <option value="photorealistic">Fotorealismo</option>
@@ -48,52 +74,44 @@
                             <option value="oil">Pittura a Olio</option>
                         </select>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 tracking-widest">Formato</label>
-                            <select id="ratio" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
-                                <option value="1:1">1:1 (Square)</option>
-                                <option value="16:9">16:9 (Cinema)</option>
-                                <option value="9:16">9:16 (Story)</option>
-                            </select>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 tracking-widest">Seed</label>
-                            <input type="number" id="seed" value="-1" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
-                        </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Formato</label>
+                        <select id="ratio" class="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
+                            <option value="1:1">1:1</option>
+                            <option value="16:9">16:9</option>
+                            <option value="9:16">9:16</option>
+                        </select>
                     </div>
                 </div>
 
-                <label class="flex items-center gap-3 cursor-pointer p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+                <label class="flex items-center gap-3 cursor-pointer p-3 rounded-2xl bg-white/5">
                     <input type="checkbox" id="enhance" class="w-4 h-4 accent-yellow-500" checked>
-                    <span class="text-xs font-medium text-slate-300">Auto-Enhance Prompt</span>
+                    <span class="text-xs font-medium text-slate-300 uppercase tracking-tighter">Auto-Enhance</span>
                 </label>
 
                 <button onclick="processAndGenerate()" class="lumina-btn w-full text-black font-black py-5 rounded-2xl uppercase tracking-[0.2em] text-sm">Genera Visione</button>
             </div>
 
             <div class="lg:col-span-2 space-y-8">
-                
-                <div id="preview-area" class="glass min-h-[500px] rounded-[2.5rem] flex flex-col items-center justify-center p-6 relative overflow-hidden shadow-2xl border-white/10">
-                    <div id="loader" class="hidden flex flex-col items-center gap-4">
+                <div id="preview-area" class="glass min-h-[500px] rounded-[2.5rem] flex flex-col items-center justify-center p-6 relative shadow-2xl border-white/10 overflow-hidden">
+                    <div id="loader" class="hidden flex flex-col items-center gap-4 text-center">
                         <div class="loader"></div>
-                        <p id="loader-text" class="text-xs font-bold animate-pulse uppercase tracking-[0.3em] text-yellow-500">Inizializzazione...</p>
+                        <p class="text-xs font-black uppercase tracking-[0.3em] text-yellow-500">Generazione in corso...</p>
                     </div>
-                    <img id="out-img" class="hidden max-w-full rounded-2xl shadow-inner border border-white/5 transition-opacity duration-500">
-                    <div id="ph" class="text-9xl font-black italic opacity-5 select-none tracking-tighter uppercase">Lumina</div>
+                    <img id="out-img" class="hidden max-w-full rounded-2xl shadow-2xl border border-white/5">
+                    <div id="ph" class="text-9xl font-black italic opacity-5 select-none uppercase">Lumina</div>
+                    <button id="var-btn" onclick="generateVariation()" class="hidden absolute bottom-6 right-6 bg-white/10 hover:bg-yellow-500 hover:text-black backdrop-blur-md px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all">Crea Variazione</button>
                 </div>
 
                 <div class="glass p-6 rounded-3xl space-y-4">
                     <div class="flex justify-between items-center border-b border-white/5 pb-4">
                         <h2 class="text-xs font-black uppercase tracking-[0.3em] text-yellow-500">Session Gallery</h2>
                         <div class="flex gap-2">
-                            <button onclick="downloadZip()" class="text-[9px] font-bold bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 uppercase tracking-widest transition-all">Zip Export</button>
-                            <button onclick="clearG()" class="text-[9px] font-bold border border-white/10 px-4 py-2 rounded-full hover:bg-red-500/20 uppercase tracking-widest transition-all">Reset</button>
+                            <button onclick="downloadZip()" class="text-[9px] font-bold bg-white/5 px-4 py-2 rounded-full uppercase tracking-widest">Zip Export</button>
+                            <button onclick="clearG()" class="text-[9px] font-bold border border-white/10 px-4 py-2 rounded-full uppercase tracking-widest">Reset</button>
                         </div>
                     </div>
-                    <div id="gallery" class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                        </div>
+                    <div id="gallery" class="gallery-wrapper"></div>
                 </div>
             </div>
         </div>
@@ -101,9 +119,10 @@
 
     <script>
         const API_URL = "http://93.51.72.195:8000";
-        let galleryData = [];
+        let galleryData = []; 
+        let fullHistory = []; 
+        let lastSeed = -1;
 
-        // Check Server Status
         async function checkServer() {
             try {
                 const r = await fetch(API_URL + "/");
@@ -112,11 +131,12 @@
                     statusDiv.className = "flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full";
                     statusDiv.innerHTML = '<div class="w-2 h-2 rounded-full bg-green-500"></div><span class="text-[10px] font-bold uppercase text-green-500 tracking-widest">Server Online</span>';
                 }
-            } catch(e) { console.log("Server non raggiungibile"); }
+            } catch(e) {}
         }
         checkServer();
 
         async function translatePrompt(text) {
+            if(!text) return "";
             try {
                 const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURI(text)}`);
                 const data = await res.json();
@@ -124,22 +144,25 @@
             } catch (e) { return text; }
         }
 
-        async function processAndGenerate() {
-            const promptInput = document.getElementById('prompt').value;
-            if(!promptInput) return;
+        async function processAndGenerate(seedToUse = -1) {
+            const promptVal = document.getElementById('prompt').value;
+            if(!promptVal) return;
 
-            const loader = document.getElementById('loader');
-            const loaderText = document.getElementById('loader-text');
-            const outImg = document.getElementById('out-img');
-            const ph = document.getElementById('ph');
+            const currentParams = {
+                prompt: promptVal,
+                negative: document.getElementById('negative').value,
+                style: document.getElementById('style').value,
+                ratio: document.getElementById('ratio').value,
+                enhance: document.getElementById('enhance').checked
+            };
 
-            loader.classList.remove('hidden');
-            loaderText.innerText = "Generazione in corso in corso...";
-            outImg.classList.add('hidden');
-            ph.classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('out-img').classList.add('hidden');
+            document.getElementById('ph').classList.add('hidden');
+            document.getElementById('var-btn').classList.add('hidden');
 
-            const translated = await translatePrompt(promptInput);
-            loaderText.innerText = "L'AI sta creando...";
+            const translated = await translatePrompt(currentParams.prompt);
+            const translatedNeg = await translatePrompt(currentParams.negative);
 
             try {
                 const r = await fetch(`${API_URL}/generate`, {
@@ -147,32 +170,82 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         prompt: translated,
-                        style: document.getElementById('style').value,
-                        seed: parseInt(document.getElementById('seed').value),
-                        ratio: document.getElementById('ratio').value,
-                        enhance: document.getElementById('enhance').checked
+                        negative_prompt: translatedNeg,
+                        style: currentParams.style,
+                        seed: seedToUse,
+                        ratio: currentParams.ratio,
+                        enhance: currentParams.enhance
                     })
                 });
                 
                 const d = await r.json();
+                lastSeed = d.seed;
                 const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
                 const url = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
                 
-                outImg.src = url;
-                outImg.classList.remove('hidden');
+                document.getElementById('out-img').src = url;
+                document.getElementById('out-img').classList.remove('hidden');
+                document.getElementById('var-btn').classList.remove('hidden');
 
-                const g = document.getElementById('gallery');
-                const thumb = document.createElement('img');
-                thumb.src = url;
-                thumb.className = "h-20 w-auto rounded-lg border border-white/10 cursor-pointer hover:scale-105 transition-all shadow-lg flex-shrink-0";
-                thumb.onclick = () => { outImg.src = url; };
-                g.prepend(thumb);
+                const historyItem = { ...currentParams, url: url, hex: d.image, seed: d.seed };
+                fullHistory.unshift(historyItem); 
                 galleryData.push(d.image);
+
+                renderGallery();
             } catch(e) {
-                alert("Errore di connessione al server.");
+                alert("Errore di connessione.");
             } finally {
-                loader.classList.add('hidden');
+                document.getElementById('loader').classList.add('hidden');
             }
+        }
+
+        function renderGallery() {
+            const g = document.getElementById('gallery');
+            g.innerHTML = '';
+            fullHistory.forEach((item) => {
+                const img = document.createElement('img');
+                img.src = item.url;
+                img.className = "gallery-item shadow-xl";
+                img.onclick = () => openModal(item);
+                g.appendChild(img);
+            });
+        }
+
+        function openModal(item) {
+            const modal = document.getElementById('modal');
+            const modalImg = document.getElementById('modal-img');
+            const restoreBtn = document.getElementById('modal-restore-btn');
+            
+            modalImg.src = item.url;
+            modal.style.display = 'flex';
+            
+            restoreBtn.onclick = () => {
+                restoreParams(item);
+                closeModal();
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function restoreParams(item) {
+            const outImg = document.getElementById('out-img');
+            outImg.src = item.url;
+            outImg.classList.remove('hidden');
+            document.getElementById('ph').classList.add('hidden');
+            document.getElementById('var-btn').classList.remove('hidden');
+            
+            lastSeed = item.seed;
+            document.getElementById('prompt').value = item.prompt;
+            document.getElementById('negative').value = item.negative;
+            document.getElementById('style').value = item.style;
+            document.getElementById('ratio').value = item.ratio;
+            document.getElementById('enhance').checked = item.enhance;
+        }
+
+        function generateVariation() {
+            if(lastSeed !== -1) processAndGenerate(lastSeed + 1);
         }
 
         async function downloadZip() {
@@ -185,17 +258,18 @@
             const d = await r.json();
             const a = document.createElement('a');
             a.href = "data:application/zip;base64," + d.zip;
-            a.download = "Lumina_Studio_Export.zip";
+            a.download = "Lumina_Session.zip";
             a.click();
         }
 
         function clearG() {
             document.getElementById('gallery').innerHTML = '';
             galleryData = [];
+            fullHistory = [];
             document.getElementById('out-img').classList.add('hidden');
+            document.getElementById('var-btn').classList.add('hidden');
             document.getElementById('ph').classList.remove('hidden');
         }
     </script>
 </body>
 </html>
-
