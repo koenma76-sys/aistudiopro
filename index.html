@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>AI STUDIO PRO - CLOUD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.05); border-radius: 2rem; backdrop-filter: blur(15px); }
+        .loader { border: 4px solid #1e293b; border-top: 4px solid #fbbf24; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-[1400px] mx-auto space-y-6">
+        <header class="glass p-6 flex justify-between items-center border-b-2 border-yellow-500 shadow-2xl">
+            <h1 class="text-2xl font-black italic text-yellow-500 uppercase tracking-tighter">AI STUDIO <span class="text-white font-light">PRO</span></h1>
+            <div id="status" class="text-[10px] font-black uppercase px-4 py-2 rounded-full border border-white/10">Checking Connection...</div>
+        </header>
+
+        <div class="glass p-6 shadow-2xl">
+            <textarea id="prompt" rows="2" class="w-full bg-black/40 border border-slate-800 rounded-2xl p-4 text-sm outline-none focus:border-yellow-500 mb-4" placeholder="Inserisci prompt..."></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+                <select id="style" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none"><option value="photorealistic, 8k">📸 Photo</option><option value="digital art">🎨 Art</option></select>
+                <select id="res" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none"><option value="720p">📺 720p</option><option value="1080p">🎬 1080p</option></select>
+                <select id="ratio" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none"><option value="16:9">📐 16:9</option><option value="9:16">📱 9:16</option><option value="4:3">📺 4:3</option></select>
+                <input type="number" id="seed" value="-1" class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs outline-none">
+                <button onclick="generate()" class="md:col-span-2 bg-yellow-500 text-black font-black py-3 rounded-xl uppercase text-xs tracking-widest hover:bg-yellow-400">Genera Immagine</button>
+            </div>
+        </div>
+
+        <div class="glass min-h-[500px] flex flex-col items-center justify-center p-8 relative shadow-2xl">
+            <div id="ld" class="loader"></div>
+            <div id="res-box" class="hidden flex flex-col items-center space-y-6">
+                <img id="out" class="max-h-[70vh] rounded-2xl shadow-2xl border border-white/10">
+                <button onclick="downloadImg()" class="bg-white/5 border border-white/10 px-10 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white/10">Salva Immagine</button>
+            </div>
+            <div id="ph" class="text-9xl font-black italic uppercase opacity-5 select-none text-center">AI STUDIO</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://93.51.72.195:8000";
+
+        async function check() {
+            const s = document.getElementById('status');
+            try {
+                const r = await fetch(`${API_BASE}/health`);
+                if(r.ok) {
+                    s.innerText = "NAS Online";
+                    s.className = "text-[10px] font-black uppercase px-4 py-2 rounded-full border border-green-500/20 bg-green-500/10 text-green-500";
+                }
+            } catch(e) {
+                s.innerText = "NAS Offline / Blocked";
+                s.className = "text-[10px] font-black uppercase px-4 py-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500";
+            }
+        }
+        check();
+
+        async function generate() {
+            const p = document.getElementById('prompt').value;
+            if(!p) return;
+            document.getElementById('ld').style.display = "block";
+            document.getElementById('res-box').classList.add('hidden');
+            document.getElementById('ph').classList.add('hidden');
+
+            try {
+                const r = await fetch(`${API_BASE}/generate`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        prompt: p,
+                        style: document.getElementById('style').value,
+                        seed: parseInt(document.getElementById('seed').value),
+                        resolution: document.getElementById('res').value,
+                        ratio: document.getElementById('ratio').value
+                    })
+                });
+                const d = await r.json();
+                const bytes = new Uint8Array(d.image.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+                document.getElementById('out').src = URL.createObjectURL(new Blob([bytes], {type:'image/png'}));
+                document.getElementById('res-box').classList.remove('hidden');
+            } catch(e) {
+                alert("Il NAS non risponde.");
+            } finally {
+                document.getElementById('ld').style.display = "none";
+            }
+        }
+        function downloadImg() {
+            const a = document.createElement('a'); a.href = document.getElementById('out').src; a.download = "ai-studio.png"; a.click();
+        }
+    </script>
+</body>
+</html>
